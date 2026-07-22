@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   ActivityIndicator,
   Pressable,
@@ -30,6 +31,12 @@ export default function MyApplicationStatus() {
   const { data, isLoading, isError, refetch } = useMyApplicationStatus(filter);
   const { mutate: createChatRoom, isPending: isCreatingChatRoom } =
     useCreateChatRoom();
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
+    }, [refetch]),
+  );
 
   const filteredApplicationStatus =
     filter === "ACCEPTED"

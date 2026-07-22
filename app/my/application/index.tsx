@@ -1,5 +1,7 @@
 import { ActivityIndicator, ScrollView, View } from "react-native";
 import CachedImage from "@/src/components/ui/CachedImage";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 import CalenderIcon from "@/public/svgs/MyPage/calenderIcon.svg";
 import CalenderIconGreen from "@/public/svgs/MyPage/calenderIconGreen.svg";
@@ -21,6 +23,12 @@ import MyApplicationCompoLayout from "./_components/MyApplicationCompoLayout";
 export default function MyApplication() {
   const { data, isLoading, isError, refetch } = useMyApplication();
   const profileImageUri = buildAssetUrl(data?.imageUrl);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
+    }, [refetch]),
+  );
 
   return (
     <CustomSafeAreaView pageColor='bg-white'>

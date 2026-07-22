@@ -1,6 +1,7 @@
 import CachedImage from "@/src/components/ui/CachedImage";
+import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import React from "react";
+import React, { useCallback } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 
 import ApplicationIcon from "@/public/svgs/MyPage/applicationIcon.svg";
@@ -33,12 +34,23 @@ export default function ProfileScreen() {
 
   const isLogined = useAuthStore((state) => state.accessToken);
 
-  const { data: isExist } = useMyApplicationExist();
+  const { data: isExist, refetch: refetchApplicationExist } =
+    useMyApplicationExist();
 
   const myApplicationExist = isExist?.isExist ?? false;
 
   const { data, isLoading, isError, refetch } =
     useMyInfomation(Boolean(isLogined));
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isLogined) {
+        void refetchApplicationExist();
+        void refetch();
+      }
+    }, [isLogined, refetch, refetchApplicationExist]),
+  );
+
   const profileImageUri = buildAssetUrl(data?.imageUrl);
   const canUseOwnerFeatures = Boolean(data?.isOwner || data?.isAdmin);
 
