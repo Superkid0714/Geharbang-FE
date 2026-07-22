@@ -7,6 +7,19 @@ const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
 
 const plugins: ExpoConfig["plugins"] = [
   "expo-router",
+  [
+    "expo-splash-screen",
+    {
+      backgroundColor: "#FFFFFF",
+      image: "./assets/icon.png",
+      imageWidth: 156,
+      resizeMode: "contain",
+      dark: {
+        backgroundColor: "#FFFFFF",
+        image: "./assets/icon.png",
+      },
+    },
+  ],
   "./plugins/withNaverMapRepository",
   "expo-web-browser",
   "expo-notifications",
@@ -45,7 +58,7 @@ if (sentryOrg && sentryProject && sentryAuthToken) {
 const config: ExpoConfig = {
   name: "게하르방",
   slug: "Geharbang-FE",
-  version: "1.2.3",
+  version: "1.2.4",
   orientation: "portrait",
   icon: "./assets/icon.png",
   scheme: "geharbang",
@@ -69,14 +82,16 @@ const config: ExpoConfig = {
   },
 
   android: {
-    versionCode: 12,
+    versionCode: 13,
     softwareKeyboardLayoutMode: "resize",
+    // SDK 54 타입은 Android 16 기준으로 true만 노출하지만,
+    // Android 15 이하에서는 adjustResize가 동작하도록 opt-out이 필요하다.
+    edgeToEdgeEnabled: false as true,
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: "#33A8F8",
     },
 
-    // edgeToEdgeEnabled: false,
     predictiveBackGestureEnabled: false,
     package: "com.econovation.geharbang",
     intentFilters: [

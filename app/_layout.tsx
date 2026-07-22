@@ -44,14 +44,14 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    loadToken();
+  }, [loadToken]);
 
   useEffect(() => {
-    loadToken();
-  }, []);
+    if (loaded && isAuthReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [isAuthReady, loaded]);
 
   if (!loaded || !isAuthReady) {
     return null;
