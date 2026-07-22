@@ -7,7 +7,7 @@ import { File } from "@/src/types/File";
 export interface AiChatResponse {
   sessionId: string;
   answer: string;
-  domain: "guesthouse" | "staff_step" | "jeju_travel" | "geharbang_service" | "greeting" | "out_of_scope";
+  domain: "guesthouse" | "staff_step" | "jeju_travel" | "geharbang_service" | "greeting" | "unclear" | "out_of_scope";
   confidence: number;
 }
 

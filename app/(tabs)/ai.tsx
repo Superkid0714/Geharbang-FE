@@ -3,11 +3,12 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -36,6 +37,7 @@ import GuesthouseIcon from "@/public/svgs/Ai/guesthouse.svg";
 import DinnerIcon from "@/public/svgs/Ai/dinner.svg";
 
 const BLUE = "#0EA5E9";
+const NAV_BAR_CLEARANCE = 8;
 
 const suggestions = [
   {
@@ -103,11 +105,13 @@ export default function AiTabScreen() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [conversations, setConversations] = useState<AiConversationSummary[]>([]);
   const sessionIdRef = useRef<string | undefined>(undefined);
+  const emptyScrollRef = useRef<ScrollView>(null);
   const scrollRef = useRef<FlatList<ChatListItem>>(null);
   const chatListItems = useMemo<ChatListItem[]>(() => {
     let previousDateKey: string | undefined;
@@ -131,6 +135,33 @@ export default function AiTabScreen() {
       ];
     });
   }, [messages]);
+
+  useEffect(() => {
+    let scrollTimer: ReturnType<typeof setTimeout> | undefined;
+    const keyboardEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const keyboardHideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSubscription = Keyboard.addListener(keyboardEvent, () => {
+      setIsKeyboardVisible(true);
+      if (scrollTimer) clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        emptyScrollRef.current?.scrollToEnd({ animated: true });
+        scrollRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    });
+    const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
+      setIsKeyboardVisible(false);
+      if (scrollTimer) clearTimeout(scrollTimer);
+      emptyScrollRef.current?.scrollTo({ y: 0, animated: true });
+    });
+
+    return () => {
+      if (scrollTimer) clearTimeout(scrollTimer);
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const startNewConversation = () => {
     sessionIdRef.current = undefined;
@@ -287,10 +318,16 @@ export default function AiTabScreen() {
   const canSend = Boolean(message.trim() || selectedImage) && !isSending;
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+    <SafeAreaView
+      style={[
+        styles.safeArea,
+        { paddingBottom: isKeyboardVisible ? 0 : NAV_BAR_CLEARANCE },
+      ]}
+      edges={["top"]}
+    >
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={0}
       >
         <View style={styles.header}>
@@ -317,7 +354,11 @@ export default function AiTabScreen() {
 
         {messages.length === 0 ? (
           <ScrollView
+            ref={emptyScrollRef}
             contentContainerStyle={styles.scrollContent}
+            keyboardDismissMode={
+              Platform.OS === "ios" ? "interactive" : "on-drag"
+            }
             keyboardShouldPersistTaps='handled'
             showsVerticalScrollIndicator={false}
           >
@@ -421,13 +462,16 @@ export default function AiTabScreen() {
                   </View>
                   <View style={styles.loadingBubble}>
                     <ActivityIndicator size='small' color={BLUE} />
-                    <Text style={styles.loadingText}>답변을 찾고 있어요</Text>
+                    <Text style={styles.loadingText}>게하르방이 고민하고 있어요</Text>
                   </View>
                 </View>
               ) : null
             }
             style={styles.messageList}
             contentContainerStyle={styles.messages}
+            keyboardDismissMode={
+              Platform.OS === "ios" ? "interactive" : "on-drag"
+            }
             keyboardShouldPersistTaps='handled'
             onContentSizeChange={() =>
               scrollRef.current?.scrollToEnd({ animated: true })
@@ -561,39 +605,38 @@ export default function AiTabScreen() {
                 </View>
               }
               renderItem={({ item }) => (
-                <Pressable
-                  disabled={isHistoryLoading}
-                  onPress={() => void openConversation(item.sessionId)}
-                  style={({ pressed }) => [
-                    styles.historyItem,
-                    pressed && styles.historyItemPressed,
-                  ]}
-                >
-                  <View style={styles.historyItemContent}>
-                    <View style={styles.historyItemTitleRow}>
-                      <Text numberOfLines={1} style={styles.historyItemTitle}>
-                        {item.title}
-                      </Text>
-                      <Text style={styles.historyItemDate}>
-                        {formatHistoryDate(item.updatedAt)}
-                      </Text>
-                    </View>
+                <View style={styles.historyItem}>
+                  <Pressable
+                    accessibilityLabel={`${item.title} 대화 열기`}
+                    disabled={isHistoryLoading}
+                    onPress={() => void openConversation(item.sessionId)}
+                    style={({ pressed }) => [
+                      styles.historyItemOpenButton,
+                      pressed && styles.historyItemPressed,
+                    ]}
+                  />
+                  <View pointerEvents='none' style={styles.historyItemContent}>
+                    <Text numberOfLines={1} style={styles.historyItemTitle}>
+                      {item.title}
+                    </Text>
                     <Text numberOfLines={2} style={styles.historyItemPreview}>
                       {item.lastMessage}
                     </Text>
                   </View>
-                  <Pressable
-                    accessibilityLabel='대화 기록 삭제'
-                    hitSlop={8}
-                    onPress={(event) => {
-                      event.stopPropagation();
-                      confirmDeleteConversation(item);
-                    }}
-                    style={styles.historyDeleteButton}
-                  >
-                    <Ionicons name='trash-outline' size={20} color='#94A3B8' />
-                  </Pressable>
-                </Pressable>
+                  <View style={styles.historyItemSide}>
+                    <Text style={styles.historyItemDate}>
+                      {formatHistoryDate(item.updatedAt)}
+                    </Text>
+                    <Pressable
+                      accessibilityLabel='대화 기록 삭제'
+                      hitSlop={6}
+                      onPress={() => confirmDeleteConversation(item)}
+                      style={styles.historyDeleteButton}
+                    >
+                      <Ionicons name='trash-outline' size={20} color='#94A3B8' />
+                    </Pressable>
+                  </View>
+                </View>
               )}
               showsVerticalScrollIndicator={false}
             />
@@ -865,7 +908,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   historyTitle: { color: "#111827", fontSize: 19, fontWeight: "700" },
-  historyList: { flexGrow: 1, padding: 16, gap: 10 },
+  historyList: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 28,
+    gap: 12,
+  },
   historyError: {
     marginBottom: 4,
     padding: 12,
@@ -876,40 +925,50 @@ const styles = StyleSheet.create({
     backgroundColor: "#FEF2F2",
   },
   historyItem: {
+    position: "relative",
     flexDirection: "row",
-    alignItems: "center",
-    paddingLeft: 16,
-    paddingRight: 8,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
+    alignItems: "stretch",
+    minHeight: 96,
+    overflow: "hidden",
+    borderRadius: 18,
+    backgroundColor: "#F8FAFC",
   },
-  historyItemPressed: { backgroundColor: "#F8FAFC" },
-  historyItemContent: { flex: 1 },
-  historyItemTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+  historyItemOpenButton: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  historyItemPressed: { backgroundColor: "#F1F5F9" },
+  historyItemContent: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: "center",
+    paddingLeft: 18,
+    paddingRight: 8,
+    paddingVertical: 17,
   },
   historyItemTitle: {
-    flex: 1,
     color: "#1F2937",
     fontSize: 15,
     fontWeight: "700",
   },
-  historyItemDate: { color: "#94A3B8", fontSize: 12 },
+  historyItemSide: {
+    width: 64,
+    zIndex: 1,
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 13,
+    paddingRight: 8,
+    paddingBottom: 10,
+  },
+  historyItemDate: { color: "#94A3B8", fontSize: 12, lineHeight: 18 },
   historyItemPreview: {
-    marginTop: 7,
+    marginTop: 9,
     color: "#64748B",
     fontSize: 13,
-    lineHeight: 19,
+    lineHeight: 20,
   },
   historyDeleteButton: {
     width: 40,
-    height: 44,
-    marginLeft: 4,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
   },

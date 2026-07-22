@@ -30,6 +30,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        tabBarHideOnKeyboard: true,
         tabBarStyle: {
           backgroundColor: "white",
           borderTopWidth: 1,
@@ -86,7 +87,6 @@ export default function TabLayout() {
         name='ai'
         options={{
           title: "AI",
-          tabBarStyle: { display: "none" },
           tabBarIcon: ({ focused }) =>
             focused
               ? <AiSelectedIcon width={24} height={24} />
