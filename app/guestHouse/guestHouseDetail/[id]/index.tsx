@@ -20,6 +20,7 @@ import { useToggleWish } from "@/src/hooks/wish/useToggleWish";
 import { COLORS } from "@/src/utils/constants/colors";
 import { GUESTHOUSE } from "@/src/utils/constants/pressSection";
 import { handleOpenURL } from "@/src/utils/stepDetail/openURL";
+import { APP_INSTALL_SHARE_MESSAGE } from "@/src/utils/constants/share";
 import { router, useLocalSearchParams } from "expo-router";
 import GuestHouseInfo from "../_components/GuestHouseInfo";
 import GuestHouseIntro from "../_components/GuestHouseIntro";
@@ -99,8 +100,8 @@ export default function GuestHouseDetail() {
       <View className='px-4 pt-3 pb-6'>
         <DetailPageBackArrow
           content='게스트하우스 상세'
-          shareTitle='게스트하우스 공유하기'
-          shareMessage='게스트하우스를 공유해보세요!'
+          shareTitle='게하르방 앱 공유하기'
+          shareMessage={APP_INSTALL_SHARE_MESSAGE}
           onBack={
             fromRegistration === "true"
               ? () => router.replace("/(tabs)")

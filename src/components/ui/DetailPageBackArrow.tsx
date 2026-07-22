@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, Share } from "react-native";
+import { Alert, Pressable, Share } from "react-native";
 
 import ShareArrow from "@/public/svgs/StepDetail/shareArrow.svg";
 
@@ -23,6 +23,17 @@ export default function DetailPageBackArrow({
   isWished,
   onWishToggle,
 }: DetailPageBackArrowProps) {
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        title: shareTitle,
+        message: shareMessage,
+      });
+    } catch {
+      Alert.alert("공유할 수 없어요", "잠시 후 다시 시도해주세요.");
+    }
+  };
+
   return (
     <BackArrorHeader
       content={content}
@@ -37,12 +48,9 @@ export default function DetailPageBackArrow({
             />
           </Pressable>
           <Pressable
-            onPress={async () =>
-              await Share.share({
-                title: shareTitle,
-                message: shareMessage,
-              })
-            }
+            accessibilityLabel={shareTitle}
+            hitSlop={8}
+            onPress={() => void handleShare()}
           >
             <ShareArrow width={20} height={20} />
           </Pressable>

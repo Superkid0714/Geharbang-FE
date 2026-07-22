@@ -16,6 +16,7 @@ import { useStepDetail } from "@/src/hooks/stepDetail/useStepDetail";
 import DetailPageBackArrow from "@/src/components/ui/DetailPageBackArrow";
 import { COLORS } from "@/src/utils/constants/colors";
 import { STEP_DETAIL } from "@/src/utils/constants/pressSection";
+import { APP_INSTALL_SHARE_MESSAGE } from "@/src/utils/constants/share";
 import { router } from "expo-router";
 import { useLocalSearchParams } from "expo-router/build/hooks";
 
@@ -111,8 +112,8 @@ export default function StepDetail() {
       <View className='px-4 pt-3 pb-6'>
         <DetailPageBackArrow
           content='스텝공고 상세'
-          shareTitle='스텝공고 공유하기'
-          shareMessage='스텝공고를 공유해보세요!'
+          shareTitle='게하르방 앱 공유하기'
+          shareMessage={APP_INSTALL_SHARE_MESSAGE}
           onBack={fromRegistration === 'true' ? () => router.replace('/(tabs)') : undefined}
           isWished={isWished}
           onWishToggle={() => requireLogin(() => toggleWish(isWished))}
