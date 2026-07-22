@@ -32,7 +32,11 @@ import WorkInfo from "../_components/WorkInfo/WorkInfo";
 const stepDetailSectionOrder = STEP_DETAIL.map(({ section }) => section);
 
 export default function StepDetail() {
-  const { id, fromRegistration } = useLocalSearchParams<{ id: string; fromRegistration?: string }>();
+  const { id, fromRegistration, ownerView } = useLocalSearchParams<{
+    id: string;
+    fromRegistration?: string;
+    ownerView?: string;
+  }>();
 
   const {
     scrollViewRef,
@@ -48,6 +52,7 @@ export default function StepDetail() {
     });
 
   const handleApply = () => {
+    if (isMyPost) return;
     setIsVisible(false);
 
     if (isApplicationExist) {
@@ -65,6 +70,7 @@ export default function StepDetail() {
 
   const [isVisible, setIsVisible] = useState(false);
   const [isWished, setIsWished] = useState(false);
+  const isMyPost = data?.isMine === true || ownerView === "true";
 
   useEffect(() => {
     if (data?.isWished !== undefined) setIsWished(data.isWished);
@@ -80,6 +86,8 @@ export default function StepDetail() {
   const { requireLogin } = useRequireLogin();
 
   const handleChatPress = () => {
+    if (isMyPost) return;
+
     requireLogin(() => {
       createChatRoom(
         { staffRecruitmentId: Number(id) },
@@ -224,24 +232,29 @@ export default function StepDetail() {
           </ScrollView>
 
           <View className='flex-row gap-2 px-4 pt-3 pb-3 bg-white border-t border-[#E5E7EB]'>
-            <View style={{ flex: 3 }}>
-              <Button
-                height={56}
-                content='채팅하기'
-                textColor={COLORS.PRIMARY.BLUE}
-                className='w-full bg-white border border-primary-blue'
-                isPending={isCreatingChatRoom}
-                onPress={handleChatPress}
-              />
-            </View>
-            <View style={{ flex: 7 }}>
+            {!isMyPost ? (
+              <View style={{ flex: 3 }}>
+                <Button
+                  height={56}
+                  content='채팅하기'
+                  textColor={COLORS.PRIMARY.BLUE}
+                  className='w-full bg-white border border-primary-blue'
+                  isPending={isCreatingChatRoom}
+                  onPress={handleChatPress}
+                />
+              </View>
+            ) : null}
+            <View style={{ flex: isMyPost ? 1 : 7 }}>
               <Button
                 variant='primary'
                 height={56}
                 content='지원하기'
                 textColor='#ffffff'
                 className='w-full'
-                onPress={() => requireLogin(() => setIsVisible(true))}
+                onPress={() => {
+                  if (isMyPost) return;
+                  requireLogin(() => setIsVisible(true));
+                }}
               />
             </View>
           </View>

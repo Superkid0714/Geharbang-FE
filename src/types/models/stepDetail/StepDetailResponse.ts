@@ -29,6 +29,7 @@ export interface StepDetailResponse {
     webSite: string;
   };
   isWished: boolean;
+  isMine: boolean;
   ownerMessage: string;
 }
 

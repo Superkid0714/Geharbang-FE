@@ -29,9 +29,10 @@ import ParlorType from "../_components/ParlorType";
 const guestHouseSectionOrder = GUESTHOUSE.map(({ section }) => section);
 
 export default function GuestHouseDetail() {
-  const { id, fromRegistration } = useLocalSearchParams<{
+  const { id, fromRegistration, ownerView } = useLocalSearchParams<{
     id: string;
     fromRegistration?: string;
+    ownerView?: string;
   }>();
 
   const {
@@ -53,6 +54,7 @@ export default function GuestHouseDetail() {
     useCreateChatRoom();
 
   const [isWished, setIsWished] = useState(false);
+  const isMyPost = data?.isMine === true || ownerView === "true";
   const contactWithoutReservation = data?.contact
     ? {
         ...data.contact,
@@ -72,6 +74,8 @@ export default function GuestHouseDetail() {
   });
 
   const handleChatPress = () => {
+    if (isMyPost) return;
+
     requireLogin(() => {
       createChatRoom(
         { guestHousePostId: Number(id) },
@@ -220,30 +224,36 @@ export default function GuestHouseDetail() {
             </View>
           </ScrollView>
 
-          <View className='flex-row gap-2 px-4 pt-3 pb-3 bg-white border-t border-[#E5E7EB]'>
-            <View style={{ flex: data?.contact?.reservationUrl ? 3 : 1 }}>
-              <Button
-                height={56}
-                content='채팅하기'
-                textColor={COLORS.PRIMARY.BLUE}
-                className='w-full bg-white border border-primary-blue'
-                isPending={isCreatingChatRoom}
-                onPress={handleChatPress}
-              />
+          {!isMyPost || data?.contact?.reservationUrl ? (
+            <View className='flex-row gap-2 px-4 pt-3 pb-3 bg-white border-t border-[#E5E7EB]'>
+              {!isMyPost ? (
+                <View style={{ flex: data?.contact?.reservationUrl ? 3 : 1 }}>
+                  <Button
+                    height={56}
+                    content='채팅하기'
+                    textColor={COLORS.PRIMARY.BLUE}
+                    className='w-full bg-white border border-primary-blue'
+                    isPending={isCreatingChatRoom}
+                    onPress={handleChatPress}
+                  />
+                </View>
+              ) : null}
+              {data?.contact?.reservationUrl ? (
+                <View style={{ flex: isMyPost ? 1 : 7 }}>
+                  <Button
+                    variant='primary'
+                    height={56}
+                    content='예약하러가기'
+                    textColor='#ffffff'
+                    className='w-full'
+                    onPress={() =>
+                      handleOpenURL({ redirect: data.contact!.reservationUrl })
+                    }
+                  />
+                </View>
+              ) : null}
             </View>
-            {data?.contact?.reservationUrl ? (
-              <View style={{ flex: 7 }}>
-                <Button
-                  variant='primary'
-                  height={56}
-                  content='예약하러가기'
-                  textColor='#ffffff'
-                  className='w-full'
-                  onPress={() => handleOpenURL({ redirect: data.contact!.reservationUrl })}
-                />
-              </View>
-            ) : null}
-          </View>
+          ) : null}
         </View>
       )}
     </CustomSafeAreaView>

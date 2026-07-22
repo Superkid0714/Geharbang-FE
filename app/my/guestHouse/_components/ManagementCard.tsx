@@ -41,9 +41,15 @@ export default function ManagementCard({
 
   const onDetail = () => {
     if (type == "guestHouse") {
-      router.push(`/guestHouse/guestHouseDetail/${id}`);
+      router.push({
+        pathname: "/guestHouse/guestHouseDetail/[id]",
+        params: { id: String(id), ownerView: "true" },
+      });
     } else {
-      router.push(`/step/stepDetail/${id}`);
+      router.push({
+        pathname: "/step/stepDetail/[id]",
+        params: { id: String(id), ownerView: "true" },
+      });
     }
   };
 
