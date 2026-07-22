@@ -153,7 +153,7 @@ export default function RecruitmentStep5() {
   return (
     <RecruitmentStepLayout currentStep={5} stepTitle='추가 질문'>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         className='flex-1'
       >
         <ScrollView

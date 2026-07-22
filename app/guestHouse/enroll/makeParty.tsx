@@ -229,7 +229,7 @@ export default function MakeParty() {
   return (
     <GuestHouseEnrollLayout currentStep={3} stepTitle='파티 정보'>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         className='flex-1'
       >
         <ScrollView

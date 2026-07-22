@@ -208,7 +208,7 @@ export default function GuestHouseEnrollStep5() {
   return (
     <GuestHouseEnrollLayout currentStep={5} stepTitle='연락처 및 사장님 한마디'>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         className='flex-1'
       >
         <ScrollView

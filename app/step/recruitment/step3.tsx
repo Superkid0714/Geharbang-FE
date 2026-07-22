@@ -97,7 +97,7 @@ export default function RecruitmentStep3() {
   return (
     <RecruitmentStepLayout currentStep={3} stepTitle='게스트하우스 소개'>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         className='flex-1'
       >
         <ScrollView

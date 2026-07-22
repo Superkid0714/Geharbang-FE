@@ -3,8 +3,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
-  LayoutChangeEvent,
   Platform,
   Pressable,
   ScrollView,
@@ -180,7 +180,7 @@ export default function ChatRoomScreen() {
   const parsedRoomId = Number(roomId);
   const [content, setContent] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
-  const [inputBarHeight, setInputBarHeight] = useState(80);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   const { data, isLoading } = useChatMessages(parsedRoomId);
@@ -238,9 +238,26 @@ export default function ChatRoomScreen() {
     });
   }, [messages.length]);
 
-  const handleInputBarLayout = (event: LayoutChangeEvent) => {
-    setInputBarHeight(event.nativeEvent.layout.height);
-  };
+  useEffect(() => {
+    const keyboardEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const keyboardHideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSubscription = Keyboard.addListener(keyboardEvent, () => {
+      setIsKeyboardVisible(true);
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      });
+    });
+    const hideSubscription = Keyboard.addListener(keyboardHideEvent, () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const handleSend = () => {
     const trimmedContent = content.trim();
@@ -279,8 +296,11 @@ export default function ChatRoomScreen() {
               className='flex-1 py-3'
               contentContainerStyle={{
                 flexGrow: 1,
-                paddingBottom: inputBarHeight + 16,
+                paddingBottom: 16,
               }}
+              keyboardDismissMode={
+                Platform.OS === "ios" ? "interactive" : "on-drag"
+              }
               keyboardShouldPersistTaps='handled'
               onContentSizeChange={() => {
                 scrollRef.current?.scrollToEnd({ animated: true });
@@ -324,9 +344,8 @@ export default function ChatRoomScreen() {
           )}
 
           <View
-            className='absolute left-0 right-0 px-3 py-3 bg-white border-t border-[#E5E7EB]'
-            style={{ bottom: 0 }}
-            onLayout={handleInputBarLayout}
+            className='shrink-0 px-3 pt-2 bg-[#F9FAFB]'
+            style={{ paddingBottom: isKeyboardVisible ? 8 : 28 }}
           >
             <Flex dir='row' items='center' justify='between' gap={8}>
               <TextInput
@@ -338,7 +357,7 @@ export default function ChatRoomScreen() {
                 onFocus={() => {
                   setTimeout(() => {
                     scrollRef.current?.scrollToEnd({ animated: true });
-                  }, 80);
+                  }, 220);
                 }}
                 multiline
                 textAlignVertical='top'
