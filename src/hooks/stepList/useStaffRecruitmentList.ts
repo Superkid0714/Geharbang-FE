@@ -122,10 +122,8 @@ export function useStaffRecruitmentList({
     if (!hasMore || isLoading || isLoadingMore) {
       return;
     }
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchData(nextPage, true);
-  }, [hasMore, isLoading, isLoadingMore, page, fetchData]);
+    setPage((currentPage) => currentPage + 1);
+  }, [hasMore, isLoading, isLoadingMore]);
 
   const refetch = useCallback(() => {
     setPage(0);
